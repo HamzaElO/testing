@@ -1,0 +1,9 @@
+{
+    "description": "Project Config File",
+    "compileType": "miniprogram",
+    "appid": "1722243263807",
+    "projectname": "",
+    "setting":{
+        "es5":true
+    }
+}

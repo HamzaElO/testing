@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<script src="./jquery.js"></script>
+<script src="./js-sdk.min.js"></script>
+<script src="./vconsole.min.js"></script>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta charset="utf-8">
+	<script>
+		var vConsole = new VConsole();
+		function getAuthCode() {
+			window.ma.native("gethwssostring", {}).then((res) => {
+				console.log(res);
+				var AuthCode = res.token;
+				console.log("authCode:" + AuthCode);
+				getAppcubeToken(AuthCode)
+			}).catch((e) => {
+				console.log("e ", e);
+			});
+		}
+
+		function getServerToken() {
+			var ServerToken
+			$.ajax({
+				url: 'https://pub-sg.appcubecloud.com/baas/auth/v1.0/oauth2/token',
+				method: 'POST',
+				async: false,
+				data: {
+					client_id: "7501c5cc9ad0add2bcd70d1b6c997508",
+					client_secret: "4004a4e1a4bcbcb3c891341839131706e66adb14b15fccf9",
+					grant_type: "client_credentials"
+				},
+				success: function (response) {
+					console.log('Token create success:', response);
+					document.getElementById('getServerToken').value = response.access_token
+					ServerToken = response.access_token
+				},
+				error: function (xhr, status, error) {
+					console.log('Token create fail');
+					document.getElementById('getServerToken').value = 'Token create fail'
+
+				}
+			});
+			return ServerToken
+		}
+
+
+		function getAppcubeToken(AuthCode) {
+			$.ajax({
+				url: 'https://dev-sg.appcubecloud.com/service/handsome__Base_AutoLogin/1.0.0/Login',
+				method: 'POST',
+				async: false,
+				headers: {
+					'Content-Type': "application/json",
+					'access-token': getServerToken()
+				},
+				data: JSON.stringify({"authCode": AuthCode}),
+				success: function (response) {
+					console.log('AppToken create success:', response['result']['access-token']);
+					document.getElementById('AppcubeToken').value = response['result']['access-token']
+					window.accesstoken = response['result']['access-token']
+				},
+				error: function (xhr, status, error) {
+					console.log('AppToken create fail');
+					document.getElementById('AppcubeToken').value = "Appcube Token create fail"
+				}
+			});
+		}
+
+		function callOpenApi() {
+			$.ajax({
+				url: 'https://dev-sg.appcubecloud.com/service/FR__BillPay/1.0.0/PlaceOrderService',
+				method: 'POST',
+				async: false,
+				headers: {
+					'Content-Type': "application/json",
+					'access-token': window.accesstoken
+				},
+				data: JSON.stringify({"title": "string","total_amount": "string"}),
+				success: function (response) {
+					console.log('AppToken create success:', response);
+					document.getElementById('callOpenApi').value = JSON.stringify(response)
+
+				},
+				error: function (xhr, status, error) {
+					console.log(error);
+
+				}
+			});
+		}
+	</script>
+</head>
+<body>
+	<div id="myDiv">
+		<h2>Autologin Demo3</h2>
+	</div>
+	<br>
+	<label onclick="getServerToken()">get ServerToken:</label><br>
+	<textarea id="getServerToken" style="width: 80%;"></textarea><br>
+	<label onclick="getAuthCode()">get AuthCode:</label><br>
+	<textarea id="getAuthCode" style="width: 80%;"></textarea><br>
+	<label>get AppcubeToken:</label><br>
+	<textarea id="AppcubeToken" style="width: 80%;"></textarea><br>
+	<label onclick="callOpenApi()">callOpenApi:</label><br>
+	<textarea id="callOpenApi" style="width: 80%;"></textarea><br>
+
+</body>
+
+</html>
